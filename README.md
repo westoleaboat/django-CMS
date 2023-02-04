@@ -85,3 +85,89 @@ Running migrations:
 
 if the output is ... OK, the models of your courses application have been synced with the database.
 
+register the models in the admin site
+edit admin.py with @admin decorators
+
+create superuser
+
+pipenv install gunicorn
+
+self-signed public-key certificates
+
+openssl req -x509 -nodes -days 3650 -newkey ec:<(openssl exparam -name prime256v1) -keyout private_key.pem -out certificate.pem
+
+in my case, this cert in default localhost port 8000 didnt work (i think) because i had another cert for a django app in port 8000, making error in ssl request etc. 
+when filling information for creating self-signed certificate, specify the localhost:port option, in my case 8080
+
+Country Name (2 letter code) [AU]:US
+State or Province Name (full name) [Some-State]:CO
+Locality Name (eg, city) []:Colorado
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:FedosCMS INC.
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:localhost:8080
+Email Address []:admin@fedoscms.com
+
+in django settings.py add '0.0.0.0' to ALLOWED HOSTS setting.
+
+if necesary, move certfile and private kry files to your project folder and run gunicorn 
+
+gunicorn fedoscms.wsgi -b :8080 --keyfile private_key.pem --certfile certificate.pem
+
+check the localhost:8080/admin to see if static files are shown
+if not, run
+
+python manage.py collectstatic
+
+install whitenoise
+
+pipenv install whitenoise
+
+add the following to settings.py
+https://stackoverflow.com/questions/12800862/how-to-make-django-serve-static-files-with-gunicorn
+
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+now you should be able to access your development server through https (which is great) and serve static files
+
+# using fixtures to provide initial data for models
+
+Sometimes, you might want to prepopulate your database with hardcoded data. 
+This is useful for automatically including initial data in the project setup, instead of 
+having to add it manually. Django comes with a simple way to load and dump data 
+from the database into files that are called fixtures. Django supports fixtures in JSON, 
+XML, or YAML formats. You are going to create a fixture to include several initial 
+Subject objects for your project.
+
+open localhost:8080/admin/courses/subject and add several subjects,
+after that run 
+
+python manage.py dumpdata courses --indent=2
+
+The dumpdata command dumps data from the database into the standard 
+output, serialized in JSON format by default. The resulting data structure 
+includes information about the model and its fields for Django to be able 
+to load it into the database.
+
+You can limit the output to the models of an application by providing the application 
+names to the command, or specifying single models for outputting data using the 
+app.Model format. You can also specify the format using the --format flag. By 
+default, dumpdata outputs the serialized data to the standard output. However, you 
+can indicate an output file using the --output flag. The --indent flag allows you 
+to specify indentation. For more information on dumpdata parameters, run python 
+manage.py dumpdata --help.
+
+You can remove the subjects from administration site,
+then, you can load the fixture into the database using 
+
+python manage.py loaddata subjects.json
+
+all subject objects included in the fixture are loaded into the database
+
+By default, Django looks for files in the fixtures/ directory of each application, but 
+you can specify the complete path to the fixture file for the loaddata command. You 
+can also use the FIXTURE_DIRS setting to tell Django additional directories to look in 
+for fixtures.
+
+# creating models for diverse content
