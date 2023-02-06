@@ -171,3 +171,167 @@ can also use the FIXTURE_DIRS setting to tell Django additional directories to l
 for fixtures.
 
 # creating models for diverse content
+models.py in courses app
+You plan to add different types of content to the course modules, such as text, 
+images, files, and videos. Therefore, you need a versatile data model that allows 
+you to store diverse content.
+You are going to create a Content model that represents the modules' contents, and define a generic relation to associate any kind of content.
+
+# using model inheritance
+Django supports model inheritance. It works in a similar way to standard class 
+inheritance in Python. Django offers the following three options to use model 
+inheritance: #page 366
+• Abstract models: Useful when you want to put some common information 
+into several models.
+• Multi-table model inheritance: Applicable when each model in the 
+hierarchy is considered a complete model by itself.
+• Proxy models: Useful when you need to change the behavior of a model, 
+for example, by including additional methods, changing the default manager, 
+or using different meta options.
+
+# creating the content models
+The Content model of your courses application contains a generic relation to 
+associate different types of content with it. You will create a different model for each 
+type of content. All content models will have some fields in common and additional 
+fields to store custom data. You are going to create an abstract model that provides 
+the common fields for all content models.
+
+make migrations to include new models 
+
+python manage.py makemigrations
+
+Migrations for 'courses':
+  courses/migrations/0002_content_file_image_text_video.py
+    - Create model Video
+    - Create model Text
+    - Create model Image
+    - Create model File
+    - Create model Content
+
+apply migrations
+python manage.py migrate
+
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, courses, sessions
+Running migrations:
+  Applying courses.0002_content_file_image_text_video... OK
+
+# creating custom model fields.
+You need a field that allows you to define an order for objects. An easy way 
+to specify an order for objects using existing Django fields is by adding a 
+PositiveIntegerField to your models. Using integers, you can easily specify 
+the order of objects. You can create a custom order field that inherits from 
+PositiveIntegerField and provides additional behavior.
+create fields.py in courses app
+
+create a model migration that reflects the new order fields.
+
+python manage.py makemigrations courses
+
+You are trying to add a non-nullable field 'order' to content without a default; we can't do that (the database needs something to populate existing rows).
+Please select a fix:
+ 1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
+ 2) Quit, and let me add a default in models.py
+Select an option: 1
+Please enter the default value now, as valid Python
+The datetime and django.utils.timezone modules are available, so you can do e.g. timezone.now
+Type 'exit' to exit this prompt
+>>> 0
+You are trying to add a non-nullable field 'order' to module without a default; we can't do that (the database needs something to populate existing rows).
+Please select a fix:
+ 1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
+ 2) Quit, and let me add a default in models.py
+Select an option: 1
+Please enter the default value now, as valid Python
+The datetime and django.utils.timezone modules are available, so you can do e.g. timezone.now
+Type 'exit' to exit this prompt
+>>> 0
+Migrations for 'courses':
+  courses/migrations/0003_auto_20230206_1224.py
+    - Change Meta options on content
+    - Change Meta options on module
+    - Add field order to content
+    - Add field order to module
+
+apply new migrations 
+python manage.py migrate
+
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, courses, sessions
+Running migrations:
+  Applying courses.0003_auto_20230206_1224... OK
+
+test the new field. open the shell
+
+python manage.py shell
+
+create a new course
+
+In [1]: from django.contrib.auth.models import User
+
+In [2]: from courses.models import Module, Subject, Course
+
+In [3]: user = User.objects.last()
+
+In [4]: subject = Subject.objects.last()
+
+In [5]: c1 = Course.objects.create(subject=subject, owner=user, title='Course 1', slug='course1')
+
+You have created a course in the database. Now, you will add modules to the course 
+and see how their order is automatically calculated. You create an initial module and 
+check its order:
+
+In [6]: m1 = Module.objects.create(course=c1, title='Module 1')
+
+In [7]: m1.order
+Out[7]: 0
+
+OrderField sets its value to 0, since this is the first Module object created for the 
+given course. You, create a second module for the same course:
+
+In [8]: m2 = Module.objects.create(course=c1, title='Module 2')
+
+In [9]: m2.order
+Out[9]: 1
+
+OrderField calculates the next order value, adding 1 to the highest order for existing 
+objects. Let's create a third module, forcing a specific order:
+In [10]: m3 = Module.objects.create(course=c1, title='Module 3', order=5)
+
+In [11]: m3.order
+Out[11]: 5
+
+If you specify a custom order, the OrderField field does not interfere and the value 
+given to order is used.
+add a fourth module:
+In [12]: m4 = Module.objects.create(course=c1, title='Module 4')
+
+In [13]: m4.order
+Out[13]: 6
+
+The order for this module has been automatically set. Your OrderField field does 
+not guarantee that all order values are consecutive. However, it respects existing 
+order values and always assigns the next order based on the highest existing order.
+Let's create a second course and add a module to it:
+
+In [14]: c2 = Course.objects.create(subject=subject, title='Course 2', slug='course2', owner=user)
+
+In [15]: m5 = Module.objects.create(course=c2, title='Module 1')
+
+In [16]: m5.order
+Out[16]: 0
+
+To calculate the new module's order, the field only takes into consideration 
+existing modules that belong to the same course. Since this is the first module 
+of the second course, the resulting order is 0. This is because you specified for_
+fields=['course'] in the order field of the Module model.
+
+# Creating a CMS
+Now that you have created a versatile data model, you are going to build the CMS. 
+The CMS will allow instructors to create courses and manage their contents. You 
+need to provide the following functionality:
+• Log in to the CMS
+• List the courses created by the instructor
+• Create, edit, and delete courses
+• Add modules to a course and reorder them
+• Add different types of content to each module and reorder them
