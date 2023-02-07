@@ -57,12 +57,13 @@ class Module(models.Model):
     # This means that the order for a new module will be assigned by adding 1 to the last module of the same Course object.
     order = OrderField(blank=True, for_fields=['course'])
 
-    class Meta:
-        ordering = ['order']
-
     def __str__(self):
         # return self.title
         return f'{self.order}. {self.title}'
+
+    class Meta:
+        ordering = ['order']
+
 
 # Content model that represents the modules' contents.
 

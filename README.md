@@ -341,3 +341,36 @@ You are going to use Django's authentication framework in your platform. Both
 instructors and students will be instances of Django's User model, so they will be 
 able to log in to the site using the authentication views of django.contrib.auth.
 
+edited urls.py of fedoscms, now can access
+localhost:8000/accounts/login/
+
+# ~~Creating class-based views~~
+# Using mixins for class-based views
+build views to create, edit, delete courses
+Mixins are a special kind of multiple inheritance for a class. You can use them 
+to provide common discrete functionality that, when added to other mixins, allows 
+you to define the behavior of a class. There are two main situations to use mixins:
+-provide multiple optional features for a class
+-use a particular feature in several classes
+
+# working with groups and permissions
+created Instructors group
+created user fedor
+added fedor to instructors group
+
+# restrict access to class-based views
+use LoginRequiredMixin and PermissionRequiredMixin
+edit views.py
+
+PermissionRequiredMixin checks that the user accessing the view has the 
+permission specified in the permission_required attribute. Your views are 
+now only accessible to users with proper permissions.
+
+create URLs for these views. create urls.py inside courses application
+include the created URLs patterns into main urls.py file of fedoscms project.
+
+create templates for these views.
+
+opening localhost:8000/accounts/login/?next=/course/mine loggin in with user from instructor group will redirect to /course/mine
+
+Now you can create new courses, edit and delete them
