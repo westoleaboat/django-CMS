@@ -335,3 +335,9 @@ need to provide the following functionality:
 • Create, edit, and delete courses
 • Add modules to a course and reorder them
 • Add different types of content to each module and reorder them
+
+# Adding an authentication system
+You are going to use Django's authentication framework in your platform. Both 
+instructors and students will be instances of Django's User model, so they will be 
+able to log in to the site using the authentication views of django.contrib.auth.
+
